@@ -3,10 +3,18 @@ var message = {};
 var app = {
   init: function(){
 
-    message.roomname = $("#roomSelect option:selected").text();
+    app.fetch();
+
+    message.username = window.location.search.substr(10);
+
+    message.roomname = "main";  
 
     $(".username").on('click', app.addFriend);
-    app.fetch();
+    $("#send").on('click', function(e) {
+      app.handleSubmit();
+      e.preventDefault();
+    });
+
   },
   send: function(message){
     $.ajax({
@@ -27,13 +35,21 @@ var app = {
   fetch: function(){
     $.ajax({
     // This is the url you should use to communicate with the parse API server.
+      url: 'https://api.parse.com/1/classes/chatterbox',
       type : 'GET',
       dataType: 'json',
       contentType : 'application/json',
-      success : function(data) {
+      success : function(response) {
         console.log('chatterbox: Message retrieved');
+        _.each(response, function(results){
+          _.each(results, function(data){
+            app.addMessage(data.text, data.username);
+            app.addRoom(data.roomname);
+            console.log(results);
+          })
+        });
       },
-      error : function(data) {
+      error : function(response) {
         console.log('chatterbox: Failed to retrieve message');
       }
     });
@@ -41,27 +57,27 @@ var app = {
   clearMessages: function(){
     $("#chats").html('');
   },
-  addMessage: function(message){
-    $("#chats").append("<div class='chat'>" + "<span class='username'>" + message.username + "<br></span>" + message + "</div>");
+  addMessage: function(text, username){
+    $("#chats").prepend("<div class='chat'>" + "<span class='username'>" + username + "<br></span>" + text + "</div>");
+    $("#message").val("");
   },
   addRoom: function(room){
-    $("#roomSelect").append(
-        $('<option></option>').html(room)
-    );
+    if(room !== undefined){
+      $("#roomSelect").append(
+          $('<option></option>').html(room)
+      );
+    }
   },
   addFriend: function(){
 
   },
   handleSubmit: function(){
-    $(".submit").on('click', function(event) {
-      message.text = $("#message").text();
-      message.username = window.location.search.substr(10);
-      app.addMessage(message.text);
-    });
+    message.text = $("#message").val();
+    app.addMessage($("#message").val(), message.username);
+    app.send(message);
   }
 };
 
 app.init();
-
 
 
