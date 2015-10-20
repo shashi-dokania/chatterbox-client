@@ -1,5 +1,6 @@
 // YOUR CODE HERE:
 var message = {};
+var friends = {};
 var app = {
   init: function(){
 
@@ -9,7 +10,12 @@ var app = {
 
     message.roomname = "main";  
 
-    $(".username").on('click', app.addFriend);
+    $(".chat").on('click', function(){
+      var friend = $(".chat").val();
+      console.log(friend);
+      app.addFriend(friend);
+    });
+
     $("#send").on('click', function(e) {
       app.handleSubmit();
       e.preventDefault();
@@ -43,9 +49,14 @@ var app = {
         console.log('chatterbox: Message retrieved');
         _.each(response, function(results){
           _.each(results, function(data){
-            app.addMessage(data.text, data.username);
+            var newText = encodeURIComponent(data.text);
+            app.addMessage(newText, data.username);
             app.addRoom(data.roomname);
-            console.log(results);
+            for(var key in friends){
+              if(key === data.username){
+                newText.bold();
+              }
+            }
           })
         });
       },
@@ -68,8 +79,8 @@ var app = {
       );
     }
   },
-  addFriend: function(){
-
+  addFriend: function(friend){
+    friends.friend = friend;
   },
   handleSubmit: function(){
     message.text = $("#message").val();
@@ -79,5 +90,6 @@ var app = {
 };
 
 app.init();
+setInterval(app.fetch, 10000);
 
 
