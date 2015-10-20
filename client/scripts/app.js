@@ -1,6 +1,7 @@
 // YOUR CODE HERE:
 var message = {};
 var friends = {};
+var rooms = {};
 var app = {
   init: function(){
 
@@ -9,12 +10,6 @@ var app = {
     message.username = window.location.search.substr(10);
 
     message.roomname = "main";  
-
-    $(".chat").on('click', function(){
-      var friend = $(".chat").val();
-      console.log(friend);
-      app.addFriend(friend);
-    });
 
     $("#send").on('click', function(e) {
       app.handleSubmit();
@@ -50,13 +45,10 @@ var app = {
         _.each(response, function(results){
           _.each(results, function(data){
             var newText = encodeURIComponent(data.text);
-            app.addMessage(newText, data.username);
+            app.addMessage(newText, data.username, data.roomname);
+            // roomFilter(data);
             app.addRoom(data.roomname);
-            for(var key in friends){
-              if(key === data.username){
-                newText.bold();
-              }
-            }
+            bold();
           })
         });
       },
@@ -68,19 +60,20 @@ var app = {
   clearMessages: function(){
     $("#chats").html('');
   },
-  addMessage: function(text, username){
-    $("#chats").prepend("<div class='chat'>" + "<span class='username'>" + username + "<br></span>" + text + "</div>");
+  addMessage: function(text, username, room){
+    $("#chats").prepend("<div class='chat " + room + "'>" + "<span class="+ username + ">" + username + "<br></span>" + text + "</div>");
     $("#message").val("");
   },
   addRoom: function(room){
-    if(room !== undefined){
+    if(room !== undefined && room !== null && room !== '' && !rooms.hasOwnProperty(room)){
       $("#roomSelect").append(
           $('<option></option>').html(room)
       );
+      rooms[room] = room;
     }
   },
   addFriend: function(friend){
-    friends.friend = friend;
+    friends[friend] = friend;
   },
   handleSubmit: function(){
     message.text = $("#message").val();
@@ -92,4 +85,23 @@ var app = {
 app.init();
 setInterval(app.fetch, 10000);
 
+var bold = function(){
+  $("#chats").on('click', 'span', function(){
+    var user = event.target.className;
+    for(var key in friends){
+      $('.'+friends[key]).parent().css('font-weight', 'bold');
+    }
+    app.addFriend(user);
+  });
+};
 
+//   $("#roomSelect").change(function () {
+//     var element = event.target;
+//     roomFilter(element);
+//   });
+
+// var roomFilter = function(element){
+//   var currentRoom = element.text;
+//   $('.chat').hide();
+//   $('.chat.'+currentRoom).show();
+// };
